@@ -1150,6 +1150,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -1288,6 +1290,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -1492,6 +1496,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -1502,16 +1510,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'infinitive_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -1519,6 +1555,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -1993,6 +2033,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文) | "l
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const categories = ["すべて", "🎲 ランダム演習", ...Array.from(new Set(QUESTIONS.map(q=>q.cat)))];
 let currentCat = "すべて";
@@ -2087,6 +2129,8 @@ function startFresh(){
     categoryPool = QUESTIONS.map((_, i) => i).filter(i => currentCat === "すべて" || QUESTIONS[i].cat === currentCat);
   }
   round = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   queue = categoryPool.slice();
   buildTabs();
   startTimer();
@@ -2229,6 +2273,10 @@ function goForward(){
 }
 
 function finishRound(){
+  if(round === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((qIdx, i) => results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -2368,21 +2416,53 @@ function checkAnswer(){
   renderCurrent();
 }
 
+function getRecordKey(){
+  return 'subjunctive_record__' + mode + '__' + currentCat;
+}
+
 function renderDone(){
   stopTimer();
   progressFill.style.width = "100%";
   progressLabel.textContent = `${categoryPool.length} / ${categoryPool.length}`;
   roundNote.textContent = "";
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<p style="color:var(--text-dim); font-size:13px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</p>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<p style="color:var(--correct); font-weight:700; font-size:14px;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</p>`;
+    } else if(diff < 0){
+      compareHtml = `<p style="color:var(--text-dim); font-size:13px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</p>`;
+    } else {
+      compareHtml = `<p style="color:var(--text-dim); font-size:13px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</p>`;
+    }
+  }
+
   card.innerHTML = `
     <div class="done-screen">
       <div class="emoji">🦍💪🏆</div>
       <h2>全問正解！筋肉痛ならぬ、脳肉痛お疲れ様。</h2>
       <p>「${currentCat}」の${categoryPool.length}問を一通りマスターしました。</p>
       <p style="color:var(--amber); font-weight:700; font-size:15px;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</p>
+      <p style="color:var(--amber); font-weight:700; font-size:15px;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</p>
+      ${compareHtml}
       <button class="btn btn-check" id="restartBtn">もう一度挑戦する</button>
     </div>
   `;
   document.getElementById('restartBtn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 startFresh();
@@ -2777,6 +2857,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -2915,6 +2997,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -3119,6 +3203,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -3129,16 +3217,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'gerund_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -3146,6 +3262,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -3560,6 +3680,8 @@ let results = [];        // per-position: {status, poolOrder:[{ci,text}], answer
 let roundNumber = 1;
 let totalInRound = 0;
 let allDone = false;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
@@ -3702,6 +3824,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -3906,6 +4030,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -3916,16 +4044,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'fivePatterns_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -3933,6 +4089,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -4353,6 +4513,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -4491,6 +4653,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -4695,6 +4859,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -4705,16 +4873,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'passive_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -4722,6 +4918,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -5141,6 +5341,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -5279,6 +5481,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -5483,6 +5687,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -5493,16 +5701,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'participle_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -5510,6 +5746,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -5928,6 +6168,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -6066,6 +6308,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -6270,6 +6514,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -6280,16 +6528,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'comparison_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -6297,6 +6573,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -6722,6 +7002,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -6860,6 +7142,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -7064,6 +7348,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -7074,16 +7362,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'relative_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -7091,6 +7407,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -7518,6 +7838,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -7656,6 +7978,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -7860,6 +8184,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -7870,16 +8198,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'auxiliary_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -7887,6 +8243,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -8305,6 +8665,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -8443,6 +8805,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -8647,6 +9011,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -8657,16 +9025,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'misc_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -8674,6 +9070,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
@@ -9096,6 +9496,8 @@ let mode = "order"; // "order" (語句整序) | "instant" (瞬間英作文)
 let timerInterval = null;
 let timerStartMs = 0;
 let finalElapsedMs = null;
+let firstRoundCorrect = null;
+let firstRoundTotal = null;
 
 const tabsEl = document.getElementById('tabs');
 const jpText = document.getElementById('jp-text');
@@ -9234,6 +9636,8 @@ function startFresh(){
   }
   queue = categoryPool.slice();
   roundNumber = 1;
+  firstRoundCorrect = null;
+  firstRoundTotal = null;
   allDone = false;
   buildTabs();
   startTimer();
@@ -9438,6 +9842,10 @@ function goPrev(){
 }
 
 function finishRound(){
+  if(roundNumber === 1){
+    firstRoundCorrect = results.filter(r=>r.status==='correct').length;
+    firstRoundTotal = order.length;
+  }
   const retryQueue = order.filter((idx,i)=> results[i].status !== 'correct');
   if(retryQueue.length > 0){
     queue = retryQueue;
@@ -9448,16 +9856,44 @@ function finishRound(){
   }
 }
 
+function getRecordKey(){
+  return 'tense_record__' + mode + '__' + currentCat;
+}
+
 function showComplete(){
   allDone = true;
   stopTimer();
   quizBody.style.display = 'none';
   completeScreen.style.display = 'flex';
+
+  const key = getRecordKey();
+  let prev = null;
+  try{
+    const saved = localStorage.getItem(key);
+    if(saved) prev = JSON.parse(saved);
+  }catch(e){ /* localStorage unavailable */ }
+
+  let compareHtml = '';
+  if(prev === null){
+    compareHtml = `<div class="sub2" style="margin-top:6px;">📌 これが初回の記録です。次回から1周目の正解数を比較できます。</div>`;
+  } else {
+    const diff = firstRoundCorrect - prev.correct;
+    if(diff > 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px; color:var(--correct); font-weight:700;">🎉 前回(1周目 ${prev.correct}/${prev.total}問)より ${diff}問アップ！</div>`;
+    } else if(diff < 0){
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回は1周目 ${prev.correct}/${prev.total}問正解でした(今回は${Math.abs(diff)}問少なかった。次はリベンジ！)</div>`;
+    } else {
+      compareHtml = `<div class="sub2" style="margin-top:6px;">前回(1周目 ${prev.correct}/${prev.total}問)と同じ正解数でした。</div>`;
+    }
+  }
+
   completeScreen.innerHTML = `
     <div class="emoji">🏆</div>
     <div class="title2">全問正解！お疲れさま！</div>
     <div class="sub2">「${currentCat}」の${categoryPool.length}問をすべて自力で並べられたよ</div>
     <div class="sub2" style="margin-top:6px; font-weight:700;">⏱ タイム： ${formatElapsed(finalElapsedMs)}</div>
+    <div class="sub2" style="margin-top:6px; font-weight:700;">📝 1周目の正解数： ${firstRoundCorrect} / ${firstRoundTotal}問</div>
+    ${compareHtml}
     <button class="btn primary" id="restart-btn" style="margin-top:14px;">もう一度挑戦する</button>
   `;
   roundBanner.textContent = '';
@@ -9465,6 +9901,10 @@ function showComplete(){
   progressFill.style.width = '100%';
   catCount.textContent = `第${roundNumber}周 完了`;
   document.getElementById('restart-btn').onclick = startFresh;
+
+  try{
+    localStorage.setItem(key, JSON.stringify({ correct: firstRoundCorrect, total: firstRoundTotal, date: new Date().toISOString() }));
+  }catch(e){ /* localStorage unavailable */ }
 }
 
 document.querySelectorAll('.mode-tab').forEach(tab=>{
