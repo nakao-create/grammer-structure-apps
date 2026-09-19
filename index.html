@@ -1430,7 +1430,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -2284,7 +2284,7 @@ function renderAnswer(){
     el.textContent = displayWord(q.chunks[ci]);
     el.onclick = () => {
       if(answered) return;
-      r.answer.splice(idx,1);
+      r.answer.splice(idx);
       renderPool();
       renderAnswer();
     };
@@ -3057,7 +3057,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -3844,7 +3844,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -4633,7 +4633,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -5421,7 +5421,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -5888,7 +5888,7 @@ startFresh();
 
 <script>
 const DATA = [
-  {cat:"原級を使った比較の文", jp:"エミリーは，ジョンは私と同じくらいバーベルのことが好きだと思っている。", en:"Emily thinks John likes his barbell as much as he likes her.", tag:"原級を使った比較の文"},
+  {cat:"原級を使った比較の文", jp:"エミリーは，ジョンは自分と同じくらいバーベルのことが好きだと思っている。", en:"Emily thinks John likes his barbell as much as he likes her.", tag:"原級を使った比較の文"},
   {cat:"原級を使った比較の文", jp:"私はジョンと同じくらい一生懸命トレーニングするが、バーベルとは話さない。", en:"I train as hard as John does, but I do not talk to my barbell.", tag:"原級を使った比較の文"},
   {cat:"原級を使った比較の文", jp:"私はジョンほどバーベルに興味はない。", en:"I am not as interested in barbells as John is.", tag:"原級を使った比較の文"},
   {cat:"原級を使った比較の文", jp:"ジョンのダンベルは，私のものよりも3倍重い。", en:"John’s dumbbells are three times as heavy as mine.", tag:"原級を使った比較の文"},
@@ -6208,7 +6208,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -7002,7 +7002,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -7494,7 +7494,7 @@ const DATA = [
 
   {cat:"助動詞+have+過去分詞", jp:"ジョンは今日のエミリーとのデートをすっぽかしたに違いない。", en:"John must have missed his date with Emily.", tag:"助動詞+have+過去分詞"},
   {cat:"助動詞+have+過去分詞", jp:"エミリーはそんなことぐらいで打ちのめされるはずがない。", en:"Emily can't have been beaten down for such a thing.", tag:"助動詞+have+過去分詞"},
-  {cat:"助動詞+have+過去分詞", jp:"ジョンはバーベルと同じようにエミリーを丁寧に接するべきだ。", en:"John should have treated Emily right as well as barbells.", tag:"助動詞+have+過去分詞"},
+  {cat:"助動詞+have+過去分詞", jp:"ジョンはバーベルと同じようにエミリーを丁寧に接するべきだった。", en:"John should have treated Emily right as well as barbells.", tag:"助動詞+have+過去分詞"},
   {cat:"助動詞+have+過去分詞", jp:"今日，少なくとも5セットはできたはずなのに。", en:"You could have finished at least 5 sets today.", tag:"助動詞+have+過去分詞"},
 
   {cat:"慣用表現", jp:"バーベルを持ち上げるぐらいなら，ダンベルプレスに挑戦したい。", en:"I would rather try dumbbell presses than lift a barbell.", tag:"慣用表現", explain:"「would rather 動詞の原形 than 動詞の原形」という形になり，thanを挟んで，動詞の原形同士の比較になることに注意。"},
@@ -7798,7 +7798,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -8585,7 +8585,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
@@ -9376,7 +9376,7 @@ function renderAnswer(){
     chip.textContent = displayWord(words[ci]);
     if(!answered){
       chip.onclick = ()=>{
-        r.answer.splice(i,1);
+        r.answer.splice(i);
         renderPool();
         renderAnswer();
       };
