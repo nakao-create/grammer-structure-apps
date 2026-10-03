@@ -1449,7 +1449,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -2408,7 +2408,7 @@ function checkAnswer(){
   const q = QUESTIONS[order[pos]];
   if(mode === 'order'){
     const isCorrect = r.answer.length === q.chunks.length &&
-      r.answer.every((ci, i) => stripPeriod(q.chunks[ci]) === stripPeriod(q.chunks[i]));
+      r.answer.every((ci, i) => displayWord(q.chunks[ci]) === displayWord(q.chunks[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -3156,7 +3156,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -3983,7 +3983,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -4812,7 +4812,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -5640,7 +5640,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -6467,7 +6467,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -7301,7 +7301,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -8137,7 +8137,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -8964,7 +8964,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
@@ -9795,7 +9795,7 @@ function checkAnswer(){
   const idx = order[pos];
   if(mode === 'order'){
     const words = DATA[idx].en.split(' ');
-    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> stripPeriod(words[ci]) === stripPeriod(words[i]));
+    const isCorrect = r.answer.length === words.length && r.answer.every((ci,i)=> displayWord(words[ci]) === displayWord(words[i]));
     r.status = isCorrect ? 'correct' : 'wrong';
   } else {
     r.status = 'revealed';
